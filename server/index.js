@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { store } from './store.js';
 import {
   getGoogleBusySlots,
@@ -7,8 +10,13 @@ import {
   testGoogleConnection,
   getGoogleAuthUrl,
   exchangeCodeForTokens,
-  getGoogleUserInfo
+  getGoogleUserInfo,
+  getDefaultRedirectUri
 } from './googleCalendar.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DIST_DIR = path.join(__dirname, '..', 'dist');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -312,7 +320,8 @@ const handleAuthUrl = (req, res) => {
     settings = store.getSettings();
   }
 
-  const authUrl = getGoogleAuthUrl(settings);
+  const redirectUri = getDefaultRedirectUri(req);
+  const authUrl = getGoogleAuthUrl(settings, redirectUri);
   if (!authUrl) {
     return res.status(400).json({
       error: 'Se requiere ingresar Client ID y Client Secret de Google Cloud para el inicio de sesión.'
@@ -335,7 +344,8 @@ app.get('/api/google/oauth-callback', async (req, res) => {
 
   try {
     const settings = store.getSettings();
-    const tokens = await exchangeCodeForTokens(code, settings);
+    const redirectUri = getDefaultRedirectUri(req);
+    const tokens = await exchangeCodeForTokens(code, settings, redirectUri);
 
     // Fetch user info from Google
     let userInfo = { email: '', name: '', picture: '' };
@@ -403,7 +413,7 @@ app.get('/api/google/oauth-callback', async (req, res) => {
               try { window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS', user: ${JSON.stringify(userObj)} }, '*'); } catch (e) {}
               setTimeout(() => { window.close(); }, 1200);
             } else {
-              setTimeout(() => { window.location.href = 'http://localhost:5173/?provider_logged_in=true'; }, 1500);
+              setTimeout(() => { window.location.href = '/?provider_logged_in=true'; }, 1500);
             }
           </script>
         </body>
@@ -414,6 +424,15 @@ app.get('/api/google/oauth-callback', async (req, res) => {
   }
 });
 
+// Serve frontend build in production if dist directory exists
+if (fs.existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+}
+
 app.listen(PORT, () => {
-  console.log(`Servidor de Agendamiento corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor de Agendamiento corriendo en el puerto ${PORT}`);
 });

@@ -1,15 +1,33 @@
 import { google } from 'googleapis';
 
 /**
+ * Dynamic helper to get the OAuth redirect URI based on environment or request
+ */
+export function getDefaultRedirectUri(req = null) {
+  if (process.env.GOOGLE_REDIRECT_URI) {
+    return process.env.GOOGLE_REDIRECT_URI.trim();
+  }
+  if (process.env.APP_URL) {
+    return `${process.env.APP_URL.replace(/\/+$/, '')}/api/google/oauth-callback`;
+  }
+  if (req) {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.headers['x-forwarded-host'] || req.get('host') || 'localhost:3001';
+    return `${protocol}://${host}/api/google/oauth-callback`;
+  }
+  return 'http://localhost:3001/api/google/oauth-callback';
+}
+
+/**
  * Helper to construct an OAuth2 / API client for Google Calendar
  */
-export function getGoogleCalendarClient(settings) {
+export function getGoogleCalendarClient(settings, redirectUri = null) {
   const gConfig = settings.googleCalendar || {};
-  const clientId = (gConfig.clientId || '').trim();
-  const clientSecret = (gConfig.clientSecret || '').trim();
+  const clientId = (gConfig.clientId || process.env.GOOGLE_CLIENT_ID || '').trim();
+  const clientSecret = (gConfig.clientSecret || process.env.GOOGLE_CLIENT_SECRET || '').trim();
   const refreshToken = (gConfig.refreshToken || '').trim();
   const accessToken = (gConfig.accessToken || '').trim();
-  const redirectUri = 'http://localhost:3001/api/google/oauth-callback';
+  const rUri = redirectUri || getDefaultRedirectUri();
 
   // Active if enabled flag is true OR if valid refreshToken/accessToken/apiKey exists
   const isActive = gConfig.enabled || Boolean(refreshToken) || Boolean(accessToken) || Boolean(gConfig.apiKey);
@@ -19,7 +37,7 @@ export function getGoogleCalendarClient(settings) {
 
   try {
     if (clientId && clientSecret && (refreshToken || accessToken)) {
-      const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+      const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, rUri);
       const credentials = {};
       if (refreshToken) credentials.refresh_token = refreshToken;
       if (accessToken) credentials.access_token = accessToken;
@@ -157,11 +175,11 @@ export async function createGoogleCalendarEvent(settings, appointment) {
 /**
  * Generate Google OAuth authorization URL for 1-click Gmail linking & Provider Auth
  */
-export function getGoogleAuthUrl(settings, redirectUri) {
+export function getGoogleAuthUrl(settings, redirectUri = null) {
   const gConfig = settings.googleCalendar || {};
   const clientId = (gConfig.clientId || process.env.GOOGLE_CLIENT_ID || '').trim();
   const clientSecret = (gConfig.clientSecret || process.env.GOOGLE_CLIENT_SECRET || '').trim();
-  const rUri = redirectUri || 'http://localhost:3001/api/google/oauth-callback';
+  const rUri = redirectUri || getDefaultRedirectUri();
 
   if (!clientId || !clientSecret) {
     return null;
@@ -188,11 +206,11 @@ export function getGoogleAuthUrl(settings, redirectUri) {
 /**
  * Exchange OAuth authorization code for tokens
  */
-export async function exchangeCodeForTokens(code, settings, redirectUri) {
+export async function exchangeCodeForTokens(code, settings, redirectUri = null) {
   const gConfig = settings.googleCalendar || {};
   const clientId = (gConfig.clientId || process.env.GOOGLE_CLIENT_ID || '').trim();
   const clientSecret = (gConfig.clientSecret || process.env.GOOGLE_CLIENT_SECRET || '').trim();
-  const rUri = redirectUri || 'http://localhost:3001/api/google/oauth-callback';
+  const rUri = redirectUri || getDefaultRedirectUri();
 
   if (!clientId || !clientSecret) {
     throw new Error('Faltan Client ID o Client Secret para intercambiar el código OAuth.');
