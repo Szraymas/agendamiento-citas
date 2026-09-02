@@ -1,0 +1,74 @@
+{
+  "providerName": "Felipe Pruebas Test",
+  "providerEmail": "felipepruebastest@gmail.com",
+  "allowedEmails": [
+    "felipepruebastest@gmail.com",
+    "suarez.cdfp12fsm@gmail.com"
+  ],
+  "workingDays": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "workStartTime": "08:00",
+  "workEndTime": "17:00",
+  "slotDurationMinutes": 45,
+  "bufferMinutes": 15,
+  "googleCalendar": {
+    "enabled": true,
+    "calendarId": "primary",
+    "apiKey": "",
+    "clientId": "481979355234-hhpbr2kpveru2929gnjcuf4q1gacchm6.apps.googleusercontent.com",
+    "clientSecret": "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",
+    "refreshToken": "1//01mSCdT4iCS4KCgYIARAAGAESNwF-L9IrIZBVyjVby7WnRGH8YQDXQboc6xA149laWVQ8KxLWimPgxOncWOGAMXHxz26-4pJQVfI",
+    "syncStatus": "connected",
+    "accessToken": "ya29.a0AdMD6Ei4B-lKICfjV4TYivPycnsdUUGF9xBGvoS6Kxs18q0FXYMkbpqPaC0CFMSAlbG_Q_QtogsEiSREiUmRzQNkZ3ssOJxUBgSx29WBRMlf7Ys8F-w3FfHQ59xPHwU_NwBwqpUzhn7LqVNxLx_rvYIR6erR9-hX54i77AbsxpNRAiJ_4YSvKxdKDyYlyHU5WK_Zd58aCgYKAZsSARQSFQHGX2Mi7QcUCE1H2i_sr369ArMr6g0206"
+  },
+  "services": [
+    {
+      "id": "serv-1",
+      "name": "Peluquería y veterinaria",
+      "allowedDays": [
+        2,
+        4
+      ],
+      "daysText": "Martes y Jueves",
+      "duration": 50,
+      "price": 99000,
+      "color": "#10b981",
+      "description": "Atención integral para tu mascota: corte, baño y chequeo veterinario."
+    },
+    {
+      "id": "serv-2",
+      "name": "Servicio de seguridad",
+      "allowedDays": [
+        1,
+        3,
+        5
+      ],
+      "daysText": "Lunes, Miércoles y Viernes",
+      "duration": 30,
+      "price": 149000,
+      "color": "#4f46e5",
+      "description": "Consultoría y prestación de servicios de seguridad privada y residencial."
+    },
+    {
+      "id": "serv-3",
+      "name": "Servicios independientes",
+      "allowedDays": [
+        6,
+        0
+      ],
+      "daysText": "Sábado y Domingo",
+      "duration": 30,
+      "price": 200000,
+      "color": "#f59e0b",
+      "description": "Asesorías personalizadas y trabajos independientes a medida."
+    }
+  ],
+  "providerPhone": "311864485"
+}
