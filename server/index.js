@@ -221,7 +221,7 @@ app.post('/api/appointments', async (req, res) => {
 
   const settings = store.getSettings();
   const service = settings.services.find(s => s.id === serviceId) || settings.services[0];
-  
+
   const startMins = parseTime(startTime);
   const endMins = startMins + service.duration;
   const endTime = formatTime(endMins);
@@ -427,7 +427,7 @@ app.get('/api/google/oauth-callback', async (req, res) => {
 // Serve frontend build in production if dist directory exists
 if (fs.existsSync(DIST_DIR)) {
   app.use(express.static(DIST_DIR));
-  app.get('*', (req, res, next) => {
+  app.get('{*splat}', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(DIST_DIR, 'index.html'));
   });
