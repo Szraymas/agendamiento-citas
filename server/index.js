@@ -7,6 +7,8 @@ import { store } from './store.js';
 import {
   getGoogleBusySlots,
   createGoogleCalendarEvent,
+  deleteGoogleCalendarEvent,
+  sendParallelAppointmentEmails,
   testGoogleConnection,
   getGoogleAuthUrl,
   exchangeCodeForTokens,
@@ -239,7 +241,7 @@ app.post('/api/appointments', async (req, res) => {
     status: 'confirmed'
   });
 
-  // Create Google Calendar event & notification for provider
+  // Create Google Calendar event & dispatch parallel email notifications
   let googleResult = { success: false };
   const gConf = settings.googleCalendar || {};
   if (gConf.enabled || gConf.refreshToken || gConf.apiKey) {
@@ -248,6 +250,9 @@ app.post('/api/appointments', async (req, res) => {
       store.updateAppointment(newAppointment.id, { googleEventId: googleResult.eventId });
     }
   }
+
+  // Dispatch parallel email notifications to Provider and Client
+  await sendParallelAppointmentEmails(settings, newAppointment);
 
   res.json({
     success: true,
@@ -260,13 +265,35 @@ app.post('/api/appointments', async (req, res) => {
 /**
  * PATCH /api/appointments/:id
  */
-app.patch('/api/appointments/:id', (req, res) => {
+app.patch('/api/appointments/:id', async (req, res) => {
   const { id } = req.params;
-  const updated = store.updateAppointment(id, req.body);
-  if (!updated) {
+  const existing = store.getAppointmentsRaw().find(a => a.id === id);
+
+  if (!existing) {
     return res.status(404).json({ error: 'Cita no encontrada' });
   }
-  res.json({ success: true, appointment: updated });
+
+  let googleDeleted = false;
+  let googleError = null;
+
+  // Si se está cancelando la cita y tiene evento en Google Calendar, lo eliminamos y notificamos al cliente por email
+  if (req.body.status === 'cancelled' && existing.googleEventId) {
+    const settings = store.getSettings();
+    const gRes = await deleteGoogleCalendarEvent(settings, existing);
+    googleDeleted = gRes.success;
+    googleError = gRes.error || gRes.reason || null;
+    if (gRes.success) {
+      req.body.googleEventId = null;
+    }
+  }
+
+  const updated = store.updateAppointment(id, req.body);
+  res.json({
+    success: true,
+    appointment: updated,
+    googleDeleted,
+    googleError
+  });
 });
 
 /**
@@ -280,10 +307,19 @@ app.post('/api/appointments/cleanup', (req, res) => {
 /**
  * DELETE /api/appointments/:id
  */
-app.delete('/api/appointments/:id', (req, res) => {
+app.delete('/api/appointments/:id', async (req, res) => {
   const { id } = req.params;
+  const existing = store.getAppointmentsRaw().find(a => a.id === id);
+
+  let googleDeleted = false;
+  if (existing && existing.googleEventId) {
+    const settings = store.getSettings();
+    const gRes = await deleteGoogleCalendarEvent(settings, existing);
+    googleDeleted = gRes.success;
+  }
+
   store.deleteAppointment(id);
-  res.json({ success: true, message: 'Cita eliminada correctamente' });
+  res.json({ success: true, message: 'Cita eliminada correctamente', googleDeleted });
 });
 
 /**

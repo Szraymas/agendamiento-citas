@@ -306,7 +306,6 @@ p {
 }
 
 .slot-card.available:hover {
-  background: var(--accent-secondary-bg);
   border-color: var(--accent-secondary);
   transform: translateY(-1px);
 }
@@ -478,11 +477,27 @@ p {
 }
 
 @keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  14% { transform: scale(1.18); }
-  28% { transform: scale(1); }
-  42% { transform: scale(1.18); }
-  70% { transform: scale(1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  14% {
+    transform: scale(1.18);
+  }
+
+  28% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scale(1.18);
+  }
+
+  70% {
+    transform: scale(1);
+  }
 }
 
 /* Desktop helper */

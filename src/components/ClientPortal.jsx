@@ -489,9 +489,14 @@ export default function ClientPortal({ settings, onAppointmentCreated }) {
             ¡Servicio Agendado!
           </h2>
 
-          <p style={{ fontSize: '1rem', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '20px' }}>
+          <p style={{ fontSize: '1rem', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '12px' }}>
             {bookingResult.appointment.serviceName} — {bookingResult.appointment.date} a las {bookingResult.appointment.startTime} hs
           </p>
+
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 'var(--radius-md)', padding: '10px 16px', margin: '0 auto 20px auto', maxWidth: '560px', fontSize: '0.85rem', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <Mail size={16} />
+            <span>Notificación despachada en paralelo a <strong>{bookingResult.appointment.clientEmail}</strong> y al proveedor. Recibirás recordatorios previos a la cita.</span>
+          </div>
 
           <div
             style={{

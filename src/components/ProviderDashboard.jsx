@@ -22,6 +22,7 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
   const [viewMode, setViewMode] = useState('calendar'); // 'calendar' | 'list'
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDate, setFilterDate] = useState('');
+  const [filterName, setFilterName] = useState('');
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,6 +49,7 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
   const todayCount = todayAppts.length;
   const pendingCount = appointments.filter(a => a.status === 'pending').length;
   const confirmedCount = appointments.filter(a => a.status === 'confirmed' || a.status === 'completed').length;
+  const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
 
   // Calculate total revenue in COP for confirmed/completed appointments
   const totalRevenueCOP = appointments
@@ -60,6 +62,19 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
     if (filterDate && apt.date !== filterDate) return false;
     return true;
   });
+
+  const handleCancelAppointment = async (apt) => {
+    const confirmMsg = `¿Estás seguro de que deseas cancelar la cita de "${apt.clientName}" (${apt.serviceName}) del ${apt.date} a las ${apt.startTime} hs?\n\n` +
+      `• Se eliminará la cita de Google Calendar automáticamente.\n` +
+      `• Se enviará un correo electrónico de notificación de cancelación al cliente (${apt.clientEmail}).`;
+
+    if (window.confirm(confirmMsg)) {
+      if (selectedAppointment && selectedAppointment.id === apt.id) {
+        setSelectedAppointment(null);
+      }
+      await onUpdateStatus(apt.id, 'cancelled');
+    }
+  };
 
   // Reset pagination when filters or appointments change
   useEffect(() => {
@@ -134,8 +149,8 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
         </div>
 
         <div className="glass-card" style={{ padding: '16px 20px' }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>Pendientes por Confirmar</span>
-          <h2 style={{ fontSize: '1.8rem', color: 'var(--accent-warning)', marginTop: '4px', margin: 0 }}>{pendingCount}</h2>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>Citas Canceladas</span>
+          <h2 style={{ fontSize: '1.8rem', color: 'var(--accent-warning)', marginTop: '4px', margin: 0 }}>{cancelledCount}</h2>
         </div>
 
         <div className="glass-card" style={{ padding: '16px 20px' }}>
@@ -144,7 +159,7 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
         </div>
 
         <div className="glass-card" style={{ padding: '16px 20px' }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>Ingresos Estimados (COP)</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>Ingresos Estimados</span>
           <h2 style={{ fontSize: '1.25rem', color: 'var(--accent-primary)', marginTop: '6px', margin: 0, fontWeight: 700 }}>
             {formatCOP(totalRevenueCOP)}
           </h2>
@@ -338,6 +353,7 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
         {/* ================= LIST VIEW ================= */}
         <div className={`dashboard-list-view ${viewMode !== 'list' ? 'hidden-desktop' : ''}`}>
           <div className="provider-filter-bar" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <label className="form-label">Filtrar por fecha:</label>
             <input
               type="date"
               className="form-input"
@@ -466,7 +482,7 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
                           </button>
                         )}
                         {apt.status !== 'cancelled' && (
-                          <button className="btn btn-secondary btn-sm" style={{ color: 'var(--accent-danger)' }} onClick={() => onUpdateStatus(apt.id, 'cancelled')}>
+                          <button className="btn btn-secondary btn-sm" style={{ color: 'var(--accent-danger)' }} onClick={() => handleCancelAppointment(apt)}>
                             <XCircle size={13} /> Cancelar
                           </button>
                         )}
@@ -623,10 +639,7 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
                     <button
                       className="btn btn-secondary btn-sm"
                       style={{ color: 'var(--accent-danger)' }}
-                      onClick={() => {
-                        onUpdateStatus(selectedAppointment.id, 'cancelled');
-                        setSelectedAppointment(null);
-                      }}
+                      onClick={() => handleCancelAppointment(selectedAppointment)}
                     >
                       Cancelar
                     </button>

@@ -159,7 +159,9 @@ export default function App() {
         body: JSON.stringify({ status })
       });
       if (res.ok) {
+        const data = await res.json();
         fetchAppointments();
+        return data;
       }
     } catch (err) {
       console.error('Error al actualizar estado:', err);
