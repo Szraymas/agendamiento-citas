@@ -127,7 +127,7 @@ export default function ProviderDashboard({ settings, appointments, onRefresh, o
   return (
     <div style={{ width: '100%' }}>
       {/* Metrics Banner */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px', marginBottom: '24px' }}>
         <div className="glass-card" style={{ padding: '16px 20px' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 600 }}>Citas para Hoy ({todayStr})</span>
           <h2 style={{ fontSize: '1.8rem', color: 'var(--accent-primary)', marginTop: '4px', margin: 0 }}>{todayCount}</h2>
